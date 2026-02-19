@@ -112,4 +112,58 @@ defmodule ExWxf.DecoderTest do
       end
     end
   end
+
+  describe "decode_expression/1 — functions/lists" do
+    test "decodes empty List" do
+      input = <<0x66, 0x00, 0x73, 4, "List">>
+      assert Decoder.decode_expression(input) == {[], <<>>}
+    end
+
+    test "decodes List of integers" do
+      input = <<0x66, 3, 0x73, 4, "List", 0x43, 1, 0x43, 2, 0x43, 3>>
+      assert Decoder.decode_expression(input) == {[1, 2, 3], <<>>}
+    end
+
+    test "decodes nested List" do
+      input =
+        <<0x66, 2, 0x73, 4, "List">> <>
+          <<0x66, 2, 0x73, 4, "List", 0x43, 1, 0x43, 2>> <>
+          <<0x66, 1, 0x73, 4, "List", 0x43, 3>>
+
+      assert Decoder.decode_expression(input) == {[[1, 2], [3]], <<>>}
+    end
+
+    test "decodes non-List Function as struct" do
+      input = <<0x66, 2, 0x73, 4, "Plus", 0x43, 1, 0x43, 2>>
+      {result, <<>>} = Decoder.decode_expression(input)
+
+      assert result == %ExWxf.Expression.Function{
+               head: %ExWxf.Expression.Symbol{name: "Plus"},
+               parts: [1, 2]
+             }
+    end
+  end
+
+  describe "decode_expression/1 — associations" do
+    test "decodes empty Association" do
+      input = <<0x41, 0x00>>
+      assert Decoder.decode_expression(input) == {%{}, <<>>}
+    end
+
+    test "decodes Association with string keys" do
+      input = <<0x41, 1, 0x2D, 0x53, 1, "a", 0x43, 1>>
+      assert Decoder.decode_expression(input) == {%{"a" => 1}, <<>>}
+    end
+
+    test "decodes Association with multiple rules" do
+      input = <<0x41, 2, 0x2D, 0x53, 1, "a", 0x43, 1, 0x2D, 0x53, 1, "b", 0x43, 2>>
+      assert Decoder.decode_expression(input) == {%{"a" => 1, "b" => 2}, <<>>}
+    end
+
+    test "decodes Association with RuleDelayed" do
+      input = <<0x41, 1, 0x3A, 0x53, 1, "x", 0x43, 5>>
+      # Auto-mapped to plain map (delayed info lost in auto-mapping)
+      assert Decoder.decode_expression(input) == {%{"x" => 5}, <<>>}
+    end
+  end
 end
