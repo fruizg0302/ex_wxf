@@ -137,9 +137,10 @@ defmodule ExWxf.EncoderTest do
       result = Encoder.encode_expression([[1, 2], [3]])
 
       expected =
-        <<0x66, 2>> <> <<0x73, 4, "List">> <>
+        <<0x66, 2>> <>
+          <<0x73, 4, "List">> <>
           (<<0x66, 2>> <> <<0x73, 4, "List">> <> <<0x43, 1>> <> <<0x43, 2>>) <>
-          (<<0x66, 1>> <> <<0x73, 4, "List">> <> <<0x43, 3>>)
+          <<0x66, 1>> <> <<0x73, 4, "List">> <> <<0x43, 3>>
 
       assert result == expected
     end
@@ -183,7 +184,9 @@ defmodule ExWxf.EncoderTest do
 
       expected =
         <<0x41, 2>> <>
-          <<0x2D>> <> <<0x53, 1, "x">> <> <<0x43, 1>> <>
+          <<0x2D>> <>
+          <<0x53, 1, "x">> <>
+          <<0x43, 1>> <>
           <<0x3A>> <> <<0x53, 1, "y">> <> <<0x43, 2>>
 
       assert result == expected
@@ -208,8 +211,7 @@ defmodule ExWxf.EncoderTest do
 
     test "encodes 2D real64 packed array" do
       data =
-        <<1.0::64-little-float, 2.0::64-little-float, 3.0::64-little-float,
-          4.0::64-little-float>>
+        <<1.0::64-little-float, 2.0::64-little-float, 3.0::64-little-float, 4.0::64-little-float>>
 
       arr = %ExWxf.Expression.PackedArray{
         type: :real64,

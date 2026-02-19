@@ -183,8 +183,7 @@ defmodule ExWxf.DecoderTest do
 
     test "decodes 2D real64 packed array" do
       data =
-        <<1.0::64-little-float, 2.0::64-little-float, 3.0::64-little-float,
-          4.0::64-little-float>>
+        <<1.0::64-little-float, 2.0::64-little-float, 3.0::64-little-float, 4.0::64-little-float>>
 
       input =
         <<0xC1, 0x23>> <>

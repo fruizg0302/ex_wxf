@@ -125,26 +125,26 @@ defmodule ExWxfTest do
 
   describe "property-based round-trip" do
     property "integers round-trip" do
-      check all int <- integer() do
+      check all(int <- integer()) do
         assert ExWxf.decode!(ExWxf.encode!(int)) == int
       end
     end
 
     property "floats round-trip" do
-      check all f <- float() do
+      check all(f <- float()) do
         result = ExWxf.decode!(ExWxf.encode!(f))
         assert result == f or Float.to_string(result) == Float.to_string(f)
       end
     end
 
     property "strings round-trip" do
-      check all s <- string(:printable) do
+      check all(s <- string(:printable)) do
         assert ExWxf.decode!(ExWxf.encode!(s)) == s
       end
     end
 
     property "lists of integers round-trip" do
-      check all list <- list_of(integer(), max_length: 20) do
+      check all(list <- list_of(integer(), max_length: 20)) do
         assert ExWxf.decode!(ExWxf.encode!(list)) == list
       end
     end

@@ -1,21 +1,45 @@
 # ExWxf
 
-**TODO: Add description**
+Elixir encoder/decoder for the [Wolfram eXchange Format (WXF)](https://reference.wolfram.com/language/tutorial/WXFFormatDescription.html), a binary serialization format for Wolfram Language expressions.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_wxf` to your list of dependencies in `mix.exs`:
+Add `ex_wxf` to your `mix.exs`:
 
-```elixir
-def deps do
-  [
-    {:ex_wxf, "~> 0.1.0"}
-  ]
-end
-```
+    {:ex_wxf, "~> 0.1"}
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/ex_wxf>.
+## Usage
 
+    # Encode Elixir terms to WXF binary
+    binary = ExWxf.encode!([1, "hello", %{"key" => 3.14}])
+
+    # Decode WXF binary back to Elixir terms
+    ExWxf.decode!(binary)
+    #=> [1, "hello", %{"key" => 3.14}]
+
+    # With compression
+    ExWxf.encode!(data, compress: true)
+
+    # Raw mode (preserves Expression structs)
+    ExWxf.decode!(binary, raw: true)
+
+## Supported Types
+
+| WXF Type | Elixir Encoding | Elixir Decoding |
+|----------|----------------|-----------------|
+| Integer8/16/32/64 | `integer` | `integer` |
+| BigInteger | `integer` (> 64-bit) | `integer` |
+| Real64 | `float` | `float` |
+| String | `binary` | `binary` |
+| Symbol | `atom` / `Expression.Symbol` | `true`/`false`/`nil` or `Expression.Symbol` |
+| Function (List head) | `list` | `list` |
+| Function (other head) | `Expression.Function` | `Expression.Function` |
+| Association | `map` | `map` |
+| PackedArray | `Expression.PackedArray` | `Expression.PackedArray` |
+| NumericArray | `Expression.NumericArray` | `Expression.NumericArray` |
+| BigReal | `Expression.BigReal` | `Expression.BigReal` |
+| BinaryString | `Expression.BinaryString` | `Expression.BinaryString` |
+
+## License
+
+MIT

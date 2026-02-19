@@ -41,7 +41,8 @@ defmodule ExWxfChecks.NoNestedModules do
 
   defp issue_for(issue_meta, line_no) do
     format_issue(issue_meta,
-      message: "File contains more than one `defmodule`. Extract nested modules to separate files.",
+      message:
+        "File contains more than one `defmodule`. Extract nested modules to separate files.",
       line_no: line_no
     )
   end

@@ -56,7 +56,7 @@ defmodule ExWxf.VarintTest do
 
   describe "round-trip" do
     property "encode then decode returns original value" do
-      check all value <- integer(0..1_000_000_000) do
+      check all(value <- integer(0..1_000_000_000)) do
         encoded = Varint.encode(value)
         assert {^value, <<>>} = Varint.decode(encoded)
       end
