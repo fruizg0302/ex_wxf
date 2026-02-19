@@ -79,6 +79,12 @@ defmodule ExWxf.Encoder do
     encode_symbol_name(Atom.to_string(value))
   end
 
+  def encode_expression(term) do
+    raise ExWxf.EncodeError,
+      message: "unsupported term: #{inspect(term)}",
+      term: term
+  end
+
   defp encode_integer(value) when value >= -128 and value <= 127 do
     <<Tokens.integer8(), value::8-little-signed>>
   end
