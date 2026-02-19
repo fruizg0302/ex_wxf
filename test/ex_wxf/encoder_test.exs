@@ -117,4 +117,76 @@ defmodule ExWxf.EncoderTest do
       assert Encoder.encode_expression(bs) == <<0x42, 3, 0xFF, 0x00, 0xAA>>
     end
   end
+
+  describe "encode_expression/1 — lists" do
+    test "encodes empty list" do
+      result = Encoder.encode_expression([])
+      # Function(0) + Symbol("List")
+      assert result == <<0x66, 0x00, 0x73, 4, "List">>
+    end
+
+    test "encodes list of integers" do
+      result = Encoder.encode_expression([1, 2, 3])
+
+      assert result ==
+               <<0x66, 3>> <>
+                 <<0x73, 4, "List">> <> <<0x43, 1>> <> <<0x43, 2>> <> <<0x43, 3>>
+    end
+
+    test "encodes nested list" do
+      result = Encoder.encode_expression([[1, 2], [3]])
+
+      expected =
+        <<0x66, 2>> <> <<0x73, 4, "List">> <>
+          (<<0x66, 2>> <> <<0x73, 4, "List">> <> <<0x43, 1>> <> <<0x43, 2>>) <>
+          (<<0x66, 1>> <> <<0x73, 4, "List">> <> <<0x43, 3>>)
+
+      assert result == expected
+    end
+  end
+
+  describe "encode_expression/1 — maps" do
+    test "encodes empty map" do
+      result = Encoder.encode_expression(%{})
+      assert result == <<0x41, 0x00>>
+    end
+
+    test "encodes map with string keys" do
+      result = Encoder.encode_expression(%{"a" => 1})
+      # Association(1) Rule String("a") Integer8(1)
+      assert result == <<0x41, 1, 0x2D>> <> <<0x53, 1, "a">> <> <<0x43, 1>>
+    end
+  end
+
+  describe "encode_expression/1 — Function struct" do
+    test "encodes Function with symbol head" do
+      func = %ExWxf.Expression.Function{
+        head: %ExWxf.Expression.Symbol{name: "Plus"},
+        parts: [1, 2]
+      }
+
+      result = Encoder.encode_expression(func)
+      assert result == <<0x66, 2>> <> <<0x73, 4, "Plus">> <> <<0x43, 1>> <> <<0x43, 2>>
+    end
+  end
+
+  describe "encode_expression/1 — Association struct" do
+    test "encodes Association with rules" do
+      assoc = %ExWxf.Expression.Association{
+        rules: [
+          %ExWxf.Expression.Rule{key: "x", value: 1},
+          %ExWxf.Expression.Rule{key: "y", value: 2, delayed: true}
+        ]
+      }
+
+      result = Encoder.encode_expression(assoc)
+
+      expected =
+        <<0x41, 2>> <>
+          <<0x2D>> <> <<0x53, 1, "x">> <> <<0x43, 1>> <>
+          <<0x3A>> <> <<0x53, 1, "y">> <> <<0x43, 2>>
+
+      assert result == expected
+    end
+  end
 end

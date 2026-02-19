@@ -33,6 +33,40 @@ defmodule ExWxf.Encoder do
     <<Tokens.binary_string()>> <> Varint.encode(byte_size(data)) <> data
   end
 
+  def encode_expression(list) when is_list(list) do
+    parts_binary = Enum.map_join(list, &encode_expression/1)
+
+    <<Tokens.function()>> <>
+      Varint.encode(length(list)) <> encode_symbol_name("List") <> parts_binary
+  end
+
+  def encode_expression(map) when is_map(map) and not is_struct(map) do
+    rules_binary =
+      map
+      |> Enum.sort_by(fn {k, _v} -> k end)
+      |> Enum.map_join(fn {key, value} ->
+        <<Tokens.rule()>> <> encode_expression(key) <> encode_expression(value)
+      end)
+
+    <<Tokens.association()>> <> Varint.encode(map_size(map)) <> rules_binary
+  end
+
+  def encode_expression(%Expression.Function{head: head, parts: parts}) do
+    parts_binary = Enum.map_join(parts, &encode_expression/1)
+
+    <<Tokens.function()>> <>
+      Varint.encode(length(parts)) <> encode_expression(head) <> parts_binary
+  end
+
+  def encode_expression(%Expression.Association{rules: rules}) do
+    rules_binary = Enum.map_join(rules, &encode_rule/1)
+    <<Tokens.association()>> <> Varint.encode(length(rules)) <> rules_binary
+  end
+
+  def encode_expression(%Expression.Rule{} = rule) do
+    encode_rule(rule)
+  end
+
   def encode_expression(value) when is_atom(value) do
     encode_symbol_name(Atom.to_string(value))
   end
@@ -57,6 +91,11 @@ defmodule ExWxf.Encoder do
   defp encode_integer(value) do
     digits = Integer.to_string(value)
     <<Tokens.big_integer()>> <> Varint.encode(byte_size(digits)) <> digits
+  end
+
+  defp encode_rule(%Expression.Rule{key: key, value: value, delayed: delayed}) do
+    token = if delayed, do: Tokens.rule_delayed(), else: Tokens.rule()
+    <<token>> <> encode_expression(key) <> encode_expression(value)
   end
 
   defp encode_symbol_name(name) do
