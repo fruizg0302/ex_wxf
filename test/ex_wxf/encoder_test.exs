@@ -189,4 +189,58 @@ defmodule ExWxf.EncoderTest do
       assert result == expected
     end
   end
+
+  describe "encode_expression/1 — PackedArray" do
+    test "encodes 1D integer32 packed array" do
+      data = <<1::32-little-signed, 2::32-little-signed, 3::32-little-signed>>
+
+      arr = %ExWxf.Expression.PackedArray{
+        type: :integer32,
+        dimensions: [3],
+        data: data
+      }
+
+      result = Encoder.encode_expression(arr)
+      # PackedArray + type_byte(0x02) + rank_varint(1) + dim_varint(3) + data
+      expected = <<0xC1, 0x02>> <> ExWxf.Varint.encode(1) <> ExWxf.Varint.encode(3) <> data
+      assert result == expected
+    end
+
+    test "encodes 2D real64 packed array" do
+      data =
+        <<1.0::64-little-float, 2.0::64-little-float, 3.0::64-little-float,
+          4.0::64-little-float>>
+
+      arr = %ExWxf.Expression.PackedArray{
+        type: :real64,
+        dimensions: [2, 2],
+        data: data
+      }
+
+      result = Encoder.encode_expression(arr)
+
+      expected =
+        <<0xC1, 0x23>> <>
+          ExWxf.Varint.encode(2) <>
+          ExWxf.Varint.encode(2) <> ExWxf.Varint.encode(2) <> data
+
+      assert result == expected
+    end
+  end
+
+  describe "encode_expression/1 — NumericArray" do
+    test "encodes unsigned_integer8 numeric array" do
+      data = <<10, 20, 30>>
+
+      arr = %ExWxf.Expression.NumericArray{
+        type: :unsigned_integer8,
+        dimensions: [3],
+        data: data
+      }
+
+      result = Encoder.encode_expression(arr)
+      expected = <<0xC2, 0x10>> <> ExWxf.Varint.encode(1) <> ExWxf.Varint.encode(3) <> data
+      assert result == expected
+    end
+  end
 end

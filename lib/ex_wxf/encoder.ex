@@ -67,6 +67,14 @@ defmodule ExWxf.Encoder do
     encode_rule(rule)
   end
 
+  def encode_expression(%Expression.PackedArray{type: type, dimensions: dims, data: data}) do
+    encode_array(Tokens.packed_array(), type, dims, data)
+  end
+
+  def encode_expression(%Expression.NumericArray{type: type, dimensions: dims, data: data}) do
+    encode_array(Tokens.numeric_array(), type, dims, data)
+  end
+
   def encode_expression(value) when is_atom(value) do
     encode_symbol_name(Atom.to_string(value))
   end
@@ -91,6 +99,13 @@ defmodule ExWxf.Encoder do
   defp encode_integer(value) do
     digits = Integer.to_string(value)
     <<Tokens.big_integer()>> <> Varint.encode(byte_size(digits)) <> digits
+  end
+
+  defp encode_array(token, type, dimensions, data) do
+    type_byte = ExWxf.ArrayTypes.to_byte(type)
+    rank = length(dimensions)
+    dims_binary = Enum.map_join(dimensions, &Varint.encode/1)
+    <<token, type_byte>> <> Varint.encode(rank) <> dims_binary <> data
   end
 
   defp encode_rule(%Expression.Rule{key: key, value: value, delayed: delayed}) do
