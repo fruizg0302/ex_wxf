@@ -166,4 +166,53 @@ defmodule ExWxf.DecoderTest do
       assert Decoder.decode_expression(input) == {%{"x" => 5}, <<>>}
     end
   end
+
+  describe "decode_expression/1 — PackedArray" do
+    test "decodes 1D integer32 packed array" do
+      data = <<1::32-little-signed, 2::32-little-signed, 3::32-little-signed>>
+      input = <<0xC1, 0x02>> <> ExWxf.Varint.encode(1) <> ExWxf.Varint.encode(3) <> data
+
+      {result, <<>>} = Decoder.decode_expression(input)
+
+      assert result == %ExWxf.Expression.PackedArray{
+               type: :integer32,
+               dimensions: [3],
+               data: data
+             }
+    end
+
+    test "decodes 2D real64 packed array" do
+      data =
+        <<1.0::64-little-float, 2.0::64-little-float, 3.0::64-little-float,
+          4.0::64-little-float>>
+
+      input =
+        <<0xC1, 0x23>> <>
+          ExWxf.Varint.encode(2) <>
+          ExWxf.Varint.encode(2) <> ExWxf.Varint.encode(2) <> data
+
+      {result, <<>>} = Decoder.decode_expression(input)
+
+      assert result == %ExWxf.Expression.PackedArray{
+               type: :real64,
+               dimensions: [2, 2],
+               data: data
+             }
+    end
+  end
+
+  describe "decode_expression/1 — NumericArray" do
+    test "decodes unsigned_integer8 numeric array" do
+      data = <<10, 20, 30>>
+      input = <<0xC2, 0x10>> <> ExWxf.Varint.encode(1) <> ExWxf.Varint.encode(3) <> data
+
+      {result, <<>>} = Decoder.decode_expression(input)
+
+      assert result == %ExWxf.Expression.NumericArray{
+               type: :unsigned_integer8,
+               dimensions: [3],
+               data: data
+             }
+    end
+  end
 end
