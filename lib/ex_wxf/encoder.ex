@@ -1,8 +1,8 @@
 defmodule ExWxf.Encoder do
   @moduledoc "Encodes Elixir terms into WXF binary expression data (no header)."
 
-  alias ExWxf.{Tokens, Varint}
   alias ExWxf.Expression
+  alias ExWxf.{Tokens, Varint}
 
   @spec encode_expression(term()) :: binary()
   def encode_expression(value) when is_integer(value) do

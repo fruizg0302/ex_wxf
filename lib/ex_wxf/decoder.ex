@@ -1,8 +1,8 @@
 defmodule ExWxf.Decoder do
   @moduledoc "Decodes WXF binary expression data into Elixir terms."
 
-  alias ExWxf.Varint
   alias ExWxf.Expression
+  alias ExWxf.Varint
 
   @spec decode_expression(binary(), keyword()) :: {term(), binary()}
   def decode_expression(binary, opts \\ []) when is_binary(binary) do
@@ -142,6 +142,7 @@ defmodule ExWxf.Decoder do
     {[val | vals], rest}
   end
 
+  @spec raise_truncated(String.t(), pos_integer()) :: no_return()
   defp raise_truncated(type_name, expected_bytes) do
     raise ExWxf.DecodeError,
       message: "truncated #{type_name}: expected #{expected_bytes} bytes"

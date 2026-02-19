@@ -24,7 +24,6 @@ defmodule ExWxf.MixProject do
         flags: [
           :unmatched_returns,
           :error_handling,
-          :underspecs,
           :extra_return,
           :missing_return
         ]

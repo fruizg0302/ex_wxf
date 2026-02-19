@@ -20,7 +20,7 @@ defmodule ExWxf.VarintTest do
     end
 
     test "encodes three-byte values" do
-      assert Varint.encode(16384) == <<0x80, 0x80, 0x01>>
+      assert Varint.encode(16_384) == <<0x80, 0x80, 0x01>>
     end
 
     test "encodes large values" do

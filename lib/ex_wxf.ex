@@ -19,7 +19,7 @@ defmodule ExWxf do
   - `raw: true` — skip auto-mapping, return Expression structs (decode only)
   """
 
-  alias ExWxf.{Encoder, Decoder}
+  alias ExWxf.{Decoder, Encoder}
 
   @header_version "8"
   @header_compress "C"
