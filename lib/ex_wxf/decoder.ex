@@ -24,6 +24,12 @@ defmodule ExWxf.Decoder do
     raise ExWxf.DecodeError, message: "unexpected end of input"
   end
 
+  defp decode_token(0x43, <<>>), do: raise_truncated("Integer8", 1)
+  defp decode_token(0x6A, rest) when byte_size(rest) < 2, do: raise_truncated("Integer16", 2)
+  defp decode_token(0x69, rest) when byte_size(rest) < 4, do: raise_truncated("Integer32", 4)
+  defp decode_token(0x4C, rest) when byte_size(rest) < 8, do: raise_truncated("Integer64", 8)
+  defp decode_token(0x72, rest) when byte_size(rest) < 8, do: raise_truncated("Real64", 8)
+
   defp decode_token(0x43, <<value::8-little-signed, rest::binary>>), do: {value, rest}
   defp decode_token(0x6A, <<value::16-little-signed, rest::binary>>), do: {value, rest}
   defp decode_token(0x69, <<value::32-little-signed, rest::binary>>), do: {value, rest}
@@ -134,6 +140,11 @@ defmodule ExWxf.Decoder do
     {val, rest} = Varint.decode(rest)
     {vals, rest} = decode_n_varints(n - 1, rest)
     {[val | vals], rest}
+  end
+
+  defp raise_truncated(type_name, expected_bytes) do
+    raise ExWxf.DecodeError,
+      message: "truncated #{type_name}: expected #{expected_bytes} bytes"
   end
 
   # --- Auto-mapping (raw Expression structs -> Elixir-native types) ---

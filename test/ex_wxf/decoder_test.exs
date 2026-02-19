@@ -215,4 +215,36 @@ defmodule ExWxf.DecoderTest do
              }
     end
   end
+
+  describe "error handling" do
+    test "raises DecodeError on truncated Integer8" do
+      assert_raise ExWxf.DecodeError, ~r/truncated/, fn ->
+        ExWxf.Decoder.decode_expression(<<0x43>>)
+      end
+    end
+
+    test "raises DecodeError on truncated Integer16" do
+      assert_raise ExWxf.DecodeError, ~r/truncated/, fn ->
+        ExWxf.Decoder.decode_expression(<<0x6A, 0x01>>)
+      end
+    end
+
+    test "raises DecodeError on truncated Real64" do
+      assert_raise ExWxf.DecodeError, ~r/truncated/, fn ->
+        ExWxf.Decoder.decode_expression(<<0x72, 0x01, 0x02>>)
+      end
+    end
+
+    test "raises DecodeError on empty input" do
+      assert_raise ExWxf.DecodeError, ~r/end of input/, fn ->
+        ExWxf.Decoder.decode_expression(<<>>)
+      end
+    end
+
+    test "raises DecodeError on unknown token" do
+      assert_raise ExWxf.DecodeError, ~r/unknown/, fn ->
+        ExWxf.Decoder.decode_expression(<<0xFF>>)
+      end
+    end
+  end
 end
