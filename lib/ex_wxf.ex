@@ -1,18 +1,5 @@
 defmodule ExWxf do
   @moduledoc """
-  Documentation for `ExWxf`.
+  Elixir encoder/decoder for the Wolfram eXchange Format (WXF).
   """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> ExWxf.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end
